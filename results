@@ -1,0 +1,45 @@
+import pandas as pd
+from scipy.optimize import fsolve
+import random
+
+def solve_equation(E0, Emax=0.440, K=14.54):
+  """
+  Решает систему уравнений для заданного [E0], Emax и K.
+
+  Args:
+      E0: Значение [E0].
+      Emax: Максимальное значение Eads (по умолчанию 0.440).
+      K: Константа связывания (по умолчанию 14.54).
+
+  Returns:
+      Кортеж из двух элементов: ([Ef], Eads).
+  """
+
+  def equations(p):
+    Ef, Eads = p
+    eq1 = Ef + Eads / 15 - E0
+    eq2 = Eads - (Emax * K * Ef) / (1 + K * Ef)
+    return (eq1, eq2)
+
+  Ef, Eads = fsolve(equations, (0, 0))  # Начальное предположение (0, 0)
+  return (Ef, Eads)
+
+# Список значений [E0]
+E0_values = [0.0575, 0.115, 0.23, 0.345, 0.46, 0.575, 1.15]
+
+# Список для хранения результатов
+results = []
+
+# Решение системы уравнений для каждого значения [E0] с добавлением шума
+for E0 in E0_values:
+  Ef, Eads = solve_equation(E0)
+  
+  results.append({"[E0]": E0, "[Ef]": Ef, "Eads": Eads})
+
+# Создание DataFrame из результатов
+df = pd.DataFrame(results)
+
+# Сохранение DataFrame в файл Excel (например, "results.xlsx")
+df.to_excel("results.xlsx", index=False)
+
+print("Результаты сохранены в файле 'results.xlsx'")
